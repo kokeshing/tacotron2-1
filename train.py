@@ -14,7 +14,7 @@ from model import Tacotron2
 from data_utils import TextMelLoader, TextMelCollate
 from loss_function import Tacotron2Loss
 from logger import Tacotron2Logger
-from hparams import create_hparams
+import hparams
 
 
 def reduce_tensor(tensor, n_gpus):
@@ -147,7 +147,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
 
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
-          rank, group_name, hparams):
+          rank, group_name):
     """Training and validation logging results to tensorboard and stdout
 
     Params
@@ -169,11 +169,6 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     learning_rate = hparams.learning_rate
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,
                                  weight_decay=hparams.weight_decay)
-
-    if hparams.fp16_run:
-        from apex import amp
-        model, optimizer = amp.initialize(
-            model, optimizer, opt_level='O2')
 
     if hparams.distributed_run:
         model = apply_gradient_allreduce(model)
@@ -275,7 +270,6 @@ if __name__ == '__main__':
                         required=False, help='comma separated name=value pairs')
 
     args = parser.parse_args()
-    hparams = create_hparams(args.hparams)
 
     torch.backends.cudnn.enabled = hparams.cudnn_enabled
     torch.backends.cudnn.benchmark = hparams.cudnn_benchmark
@@ -287,4 +281,4 @@ if __name__ == '__main__':
     print("cuDNN Benchmark:", hparams.cudnn_benchmark)
 
     train(args.output_directory, args.log_directory, args.checkpoint_path,
-          args.warm_start, args.n_gpus, args.rank, args.group_name, hparams)
+          args.warm_start, args.n_gpus, args.rank, args.group_name)
