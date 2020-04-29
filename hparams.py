@@ -39,7 +39,7 @@ def create_hparams(hparams_string=None, verbose=False):
         win_length=1024,
         n_mel_channels=80,
         mel_fmin=0.0,
-        mel_fmax=8000.0,
+        mel_fmax=None,
 
         ################################
         # Model Parameters             #
